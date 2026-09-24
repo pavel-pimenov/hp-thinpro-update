@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}HP ThinPro Update{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="icon" href="data:,">
+</head>
+<body>
+<header>
+  <div class="wrap header-inner">
+    <a class="brand" href="{{ url_for('app.index') }}">HP ThinPro <b>Update</b></a>
+    <nav>
+      <a href="{{ url_for('app.index') }}">Главная</a>
+      <a href="{{ url_for('app.images') }}">Образы OS</a>
+      <a href="{{ url_for('app.addons') }}">Пакеты</a>
+      <a href="{{ url_for('app.debs') }}">.deb</a>
+      <a href="{{ url_for('app.xars') }}">.xar</a>
+      <a href="{{ url_for('app.jobs') }}">Зеркало</a>
+    </nav>
+  </div>
+</header>
+<main class="wrap">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="flash {{ cat }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+<footer class="wrap">
+  Парсинг известных индексов <code>hpcatalog.xml</code> / <code>addoncatalog.xml</code> с
+  <code>ftp.hp.com</code>. Только <b>ThinPro 64-bit (amd64)</b> — Windows, Smart Zero Core и i386 отфильтрованы.
+</footer>
+</body>
+</html>

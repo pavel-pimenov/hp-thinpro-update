@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Пакеты .xar — HP ThinPro Update{% endblock %}
+{% block content %}
+<h1>Пакеты HP ThinPro (.xar)</h1>
+<p class="muted">Сервис-паки и дополнения в формате HP XAR. Нажмите «Зеркало» — и файл скачается
+с HP на этот сервер (в кэш); затем его можно забрать и поставить на тонкий клиент в закрытом
+контуре штатными средствами (например <code>tpsetup</code>/HP Easy Update).</p>
+
+<form class="filter" method="get">
+  <input type="search" name="q" value="{{ q }}" placeholder="Пакет / версия / источник…">
+  <button class="btn" type="submit">Фильтр</button>
+  <a class="btn ghost" href="{{ url_for('app.xars') }}">Сброс</a>
+</form>
+
+<p class="muted">Всего: {{ entries|length }} файла(ов), ~{{ total_size | human_size }}</p>
+<form method="post" action="{{ url_for('app.mirror_all_xars') }}">
+  <button class="btn" type="submit" {% if not entries %}disabled{% endif %}>
+    Зеркалить все .xar ({{ entries|length }}) для оффлайн-репозитория
+  </button>
+</form>
+
+<table class="tbl">
+  <tr>
+    <th>Пакет</th>
+    <th>ThinPro</th>
+    <th>Дата выхода</th>
+    <th>Арх.</th>
+    <th>Размер</th>
+    <th>Источник</th>
+    <th></th>
+  </tr>
+  {% for e in entries %}
+  <tr>
+    <td><b>{{ e.label }}</b><br><span class="muted">{{ e.source_id }}</span></td>
+    <td>{{ e.version or "—" }}</td>
+    <td>{{ e.date | iso_date or "—" }}</td>
+    <td>{{ e.arch or "—" }}</td>
+    <td>{{ e.size | human_size }}</td>
+    <td><span class="muted">{{ e.source }}</span></td>
+    <td class="nowrap">
+      <a class="btn small" href="{{ url_for('app.file_download', catalog=e.catalog, row=e.row, file=e.file) }}">Скачать</a>
+      <form class="inline" method="post" action="{{ url_for('app.mirror', catalog=e.catalog, row=e.row, file=e.file) }}">
+        <button class="btn small ghost" type="submit">Зеркало</button>
+      </form>
+    </td>
+  </tr>
+  {% else %}
+  <tr><td colspan="7" class="muted">Пусто. {{ 'Скачайте каталоги на главной.' if not q else 'По запросу ничего не найдено.' }}</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

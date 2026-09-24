@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+<form class="refresh-form" method="post" action="{{ url_for('app.refresh') }}">
+  <button type="submit" class="btn">Обновить каталоги</button>
+  {% if summary %}
+    <span class="muted">последнее обновление: {{ summary.fetched_at }}</span>
+  {% endif %}
+</form>
+
+<div class="cards">
+  <a class="card" href="{{ url_for('app.images') }}">
+    <div class="card-num">{{ img_count }}</div>
+    <div class="card-label">Образов ОС (ThinPro)</div>
+    <div class="muted">ThinPro 7/8/9</div>
+  </a>
+  <a class="card" href="{{ url_for('app.addons') }}">
+    <div class="card-num">{{ addon_count }}</div>
+    <div class="card-label">Пакетов (аддонов)</div>
+    <div class="muted">аддоны по версиям ThinPro</div>
+  </a>
+  <a class="card" href="{{ url_for('app.debs') }}">
+    <div class="card-num">{{ deb_count }}</div>
+    <div class="card-label">Пакетов .deb</div>
+    <div class="muted">оффлайн-установка на клиентах</div>
+  </a>
+  <a class="card" href="{{ url_for('app.xars') }}">
+    <div class="card-num">{{ xar_count }}</div>
+    <div class="card-label">Пакетов .xar</div>
+    <div class="muted">сервис-паки HP ThinPro</div>
+  </a>
+  <a class="card" href="{{ url_for('app.jobs') }}">
+    <div class="card-num">{{ running }}</div>
+    <div class="card-label">Активных задач зеркала</div>
+    <div class="muted">точечная выгрузка файлов</div>
+  </a>
+</div>
+
+{% if not has_data %}
+<div class="flash error">
+  Каталоги ещё не скачаны. Нажмите «Обновить каталоги» (требуется доступ к ftp.hp.com).
+</div>
+{% endif %}
+
+<section class="card plain">
+  <h2>Сырые каталоги HP</h2>
+  <table class="tbl">
+    <tr><th>Каталог</th><th>Источник</th><th>Обновлён</th><th></th></tr>
+    {% for name, cat in cats.items() %}
+    <tr>
+      <td><code>{{ name }}.xml</code></td>
+      <td class="muted"><a href="{{ cat.url }}" target="_blank" rel="noopener">{{ cat.url }}</a></td>
+      <td>{{ cat.fetched_at }}</td>
+      <td><a class="btn small" href="{{ url_for('app.raw_catalog', name=name) }}">Скачать</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+</section>
+
+<section class="card plain">
+  <h2>API</h2>
+  <p class="muted">Полный индекс каталогов в JSON доступен по адресу
+    <a href="{{ url_for('app.api_index') }}"><code>/api/index.json</code></a>.</p>
+</section>
+{% endblock %}

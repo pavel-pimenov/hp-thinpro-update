@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Образы ThinPro — HP ThinPro Update{% endblock %}
+{% block content %}
+<h1>Образы ОС (ThinPro)</h1>
+<form class="filter" method="get">
+  <input type="search" name="q" value="{{ q }}" placeholder="Поиск по ID/названию/платформе…">
+  <select name="platform">
+    <option value="">Все платформы</option>
+    {% for p in platforms %}
+      <option value="{{ p }}" {% if p == platform %}selected{% endif %}>{{ p }}</option>
+    {% endfor %}
+  </select>
+  <button class="btn" type="submit">Фильтр</button>
+</form>
+
+<p class="muted">Найдено: {{ rows|length }}</p>
+
+<table class="tbl">
+  <tr>
+    <th>Образ</th>
+    <th>Платформа</th>
+    <th>ОС</th>
+    <th>Арх.</th>
+    <th>Файл</th>
+    <th>Размер</th>
+    <th>Доступен</th>
+    <th></th>
+  </tr>
+  {% for r in rows %}
+  <tr>
+    <td>
+      <b>{{ r.id }}</b><br>
+      <span class="muted">{{ r.name }}</span>
+    </td>
+    <td>{{ r.platform_id }}<br><span class="muted">{{ r.platform }}</span></td>
+    <td>{{ r.os_version }}<br><span class="muted">{{ r.os_type }}</span></td>
+    <td>{{ r.architecture or "—" }}</td>
+    <td>
+      {% if r.main_file %}
+        {{ r.main_file.label }}<br>
+        <span class="muted">{{ r.main_file.algo }} {{ r.main_file.hash[:16] }}…</span>
+      {% else %}
+        —
+      {% endif %}
+    </td>
+    <td>{% if r.main_file %}{{ r.main_file.size | human_size }}{% else %}—{% endif %}</td>
+    <td>{{ r.available or "—" }}</td>
+    <td class="nowrap">
+      <details>
+        <summary>Файлы</summary>
+        <table class="tbl inner">
+          {% for f in r.files %}
+          <tr>
+            <td class="muted">{{ f.kind }}</td>
+            <td>{{ f.label }}</td>
+            <td>{{ f.size | human_size }}</td>
+            <td class="nowrap">
+              <a class="btn small" href="{{ url_for('app.file_download', catalog='hp', row=r._i, file=f._j) }}">Скачать</a>
+              <form class="inline" method="post" action="{{ url_for('app.mirror', catalog='hp', row=r._i, file=f._j) }}">
+                <button class="btn small ghost" type="submit">Зеркало</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </table>
+      </details>
+    </td>
+  </tr>
+  {% else %}
+  <tr><td colspan="8" class="muted">Пусто. {{ 'Скачайте каталоги на главной.' if not q and not platform else 'По запросу ничего не найдено.' }}</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

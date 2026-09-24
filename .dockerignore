@@ -1,0 +1,10 @@
+git
+.git
+.gitignore
+data
+*.pyc
+__pycache__
+.env
+README.md
+LICENSE
+.dockerignore

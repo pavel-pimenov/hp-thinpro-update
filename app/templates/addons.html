@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Пакеты — HP ThinPro Update{% endblock %}
+{% block content %}
+<h1>Пакеты ThinPro (дополнения)</h1>
+<form class="filter" method="get">
+  <input type="search" name="q" value="{{ q }}" placeholder="Название / ID / платформа…">
+  <select name="arch">
+    <option value="">Любая архитектура</option>
+    {% for a in arches %}
+      <option value="{{ a }}" {% if a == arch %}selected{% endif %}>{{ a }}</option>
+    {% endfor %}
+  </select>
+  <button class="btn" type="submit">Фильтр</button>
+</form>
+
+<p class="muted">Сгруппировано по версии ThinPro. Кнопка «Зеркалить всё» скачает на сервер все файлы версии (оффлайн-репозиторий).</p>
+
+{% for g in groups %}
+<h2>ThinPro {{ g.version or "—" }}</h2>
+<p class="muted">{{ g.addon_count }} пакет(ов), {{ g.file_count }} файл(ов), ~{{ g.total_size | human_size }}</p>
+<form method="post" action="{{ url_for('app.mirror_all', version=g.version) }}">
+  <button class="btn" type="submit" {% if not g.addon_count %}disabled{% endif %}>
+    Зеркалить все файлы этой версии
+  </button>
+</form>
+
+<table class="tbl">
+  <tr>
+    <th>Пакет</th>
+    <th>Версия</th>
+    <th>Дата выхода</th>
+    <th>Арх.</th>
+    <th>Платформы</th>
+    <th>Пакет</th>
+    <th>Размер</th>
+    <th></th>
+  </tr>
+  {% for r in g.rows %}
+  <tr>
+    <td><b>{{ r.name }}</b><br><span class="muted">{{ r.id }}</span></td>
+    <td>{{ r.version }}</td>
+    <td>{{ r.available | iso_date or "—" }}</td>
+    <td>{{ r.architecture or "—" }}</td>
+    <td><span class="muted">{{ r.platforms | join(", ") or "—" }}</span></td>
+    <td>{% if r.files %}{{ r.files[0].label }}{% else %}—{% endif %}</td>
+    <td>{% if r.files %}{{ r.files[0].size | human_size }}{% else %}—{% endif %}</td>
+    <td class="nowrap">
+      <details>
+        <summary>Файлы</summary>
+        <table class="tbl inner">
+          {% for f in r.files %}
+          <tr>
+            <td class="muted">{{ f.kind }}</td>
+            <td>{{ f.label }}</td>
+            <td>{{ f.size | human_size }}</td>
+            <td class="nowrap">
+              <a class="btn small" href="{{ url_for('app.file_download', catalog='addons', row=r._i, file=f._j) }}">Скачать</a>
+              <form class="inline" method="post" action="{{ url_for('app.mirror', catalog='addons', row=r._i, file=f._j) }}">
+                <button class="btn small ghost" type="submit">Зеркало</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </table>
+      </details>
+    </td>
+  </tr>
+  {% else %}
+  <tr><td colspan="8" class="muted">По запросу в этой версии ничего не найдено.</td></tr>
+  {% endfor %}
+</table>
+{% endfor %}
+
+{% if not groups %}
+<p class="muted">Пусто. Скачайте каталоги на главной.</p>
+{% endif %}
+{% endblock %}

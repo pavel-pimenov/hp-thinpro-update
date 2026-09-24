@@ -1,0 +1,27 @@
+services:
+  web:
+    build: .
+    container_name: hp-thinpro-update
+    ports:
+      - "${PORT:-8080}:8000"
+    volumes:
+      - hp-data:/data
+    environment:
+      - DATA_DIR=/data
+      - CACHE_DIR=/data/mirror
+      - UPSTREAM_BASE=${UPSTREAM_BASE:-https://ftp.hp.com}
+      - REFRESH_INTERVAL_HOURS=${REFRESH_INTERVAL_HOURS:-12}
+      - TZ=${TZ:-UTC}
+      - SECRET_KEY=${SECRET_KEY:-change-me-before-prod}
+      - HTTP_PROXY=${HTTP_PROXY:-}
+      - HTTPS_PROXY=${HTTPS_PROXY:-}
+      - NO_PROXY=${NO_PROXY:-}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/healthz')"]
+      interval: 60s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  hp-data:

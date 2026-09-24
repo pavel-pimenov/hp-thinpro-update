@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Зеркало — HP ThinPro Update{% endblock %}
+{% block content %}
+{% if any_running %}
+  <noscript><meta http-equiv="refresh" content="5"></noscript>
+  <script>setTimeout(function(){ location.reload(); }, 5000);</script>
+{% endif %}
+<h1>Точечная выгрузка файлов</h1>
+<p class="muted">Выбранные файлы скачиваются с ftp.hp.com на этот сервер (в кэш) в фоне; после завершения
+они будут отдаваться уже из локального кэша, а страница обновляется автоматически.</p>
+
+<table class="tbl">
+  <tr>
+    <th>Статус</th>
+    <th>Что</th>
+    <th>Файл</th>
+    <th>Прогресс</th>
+    <th>Запущено</th>
+    <th>Завершено</th>
+  </tr>
+  {% for j in jobs %}
+  {% if j.kind == "bulk" %}
+  <tr>
+    <td>
+      <span class="{{ 'ok' if j.state == 'done' or j.state == 'done_with_errors' else ('err' if j.state in ('error', 'cancelled') else ('run' if j.state in ('running', 'cancelling') else 'muted')) }}">
+      {% if j.state == "done" %}готово
+      {% elif j.state == "done_with_errors" %}готово (с ошибками)
+      {% elif j.state == "running" %}выполняется
+      {% elif j.state == "pending" %}в очереди
+      {% elif j.state == "cancelling" %}остановка…
+      {% elif j.state == "cancelled" %}отменено
+      {% else %}{{ j.state }}{% endif %}
+      </span>
+      {% if j.message %}<div class="muted">{{ j.message }}</div>{% endif %}
+    </td>
+    <td colspan="2">
+      <b>Массовое зеркалирование</b><br><span class="muted">{{ j.name }}</span>
+      {% if j.state in ("pending", "running") %}
+        <form class="inline" method="post" action="{{ url_for('app.cancel', job_id=j.id) }}">
+          <button class="btn small ghost" type="submit">Отменить</button>
+        </form>
+      {% endif %}
+    </td>
+    <td>
+      {{ j.got + j.failed }} / {{ j.total }} файлов
+      {% if j.failed %}<span class="err">({{ j.failed }} ошибок)</span>{% endif %}
+      <progress value="{{ j.got + j.failed }}" max="{{ j.total }}"></progress>
+    </td>
+    <td>{{ j.started or "—" }}</td>
+    <td>{{ j.finished or "—" }}</td>
+  </tr>
+  {% else %}
+  <tr>
+    <td>
+      {% if j.state == "done" %}<span class="ok">готово</span>
+      {% elif j.state == "running" %}<span class="run">выполняется</span>
+      {% elif j.state == "pending" %}<span class="muted">в очереди</span>
+      {% elif j.state == "error" %}<span class="err">ошибка</span>
+      {% else %}<span class="muted">{{ j.state }}</span>{% endif %}
+      {% if j.message %}<div class="muted">{{ j.message }}</div>{% endif %}
+    </td>
+    <td>{{ j.name }}</td>
+    <td>{{ j.label }}</td>
+    <td>
+      {% if j.total %}{{ j.got | human_size }} / {{ j.total | human_size }}
+        <progress value="{{ j.got }}" max="{{ j.total }}"></progress>
+      {% else %}{{ j.got | human_size }}{% endif %}
+    </td>
+    <td>{{ j.started or "—" }}</td>
+    <td>{{ j.finished or "—" }}</td>
+  </tr>
+  {% endif %}
+  {% else %}
+  <tr><td colspan="6" class="muted">Задач пока нет.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}
