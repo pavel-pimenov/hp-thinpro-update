@@ -3,7 +3,7 @@
 # Usage:  bash scripts/deploy.sh
 set -euo pipefail
 
-REPO_URL="${1:-git@github.com:pavel-pimenov/hp-thinpro-update.git}"
+REPO_URL="${1:-https://github.com/pavel-pimenov/hp-thinpro-update.git}"
 APP_DIR="${APP_DIR:-/opt/hp-thinpro-update}"
 PORT="${PORT:-8080}"
 SECRET="${SECRET:-$(openssl rand -hex 32)}"
